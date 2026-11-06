@@ -91,6 +91,7 @@ The pools are the official Uniswap v4 deployments. PoolId `0xb930b476db0a7bc7234
 ## Reproduce
 
 ```bash
+git clone --recursive https://github.com/cyberhooman/reactive-omni-gap-catcher && cd reactive-omni-gap-catcher
 forge build
 forge test                          # 12 tests: 8 GapCatcher unit tests (mock system contract), 4 Executor tests on a Base Sepolia fork
 bash scripts/deploy.sh              # fresh deployment -> deployments.json (needs DEPLOYER_PRIVATE_KEY with testnet ETH + lREACT)
@@ -100,7 +101,7 @@ python scripts/runs.py control 1    # sub-fee gap, must not fire
 python scripts/baseline.py 10       # the keeper-bot baseline
 ```
 
-`lib/` holds reactive-lib-omni, forge-std and v4-core, pulled at HEAD on 2026-11-06.
+`lib/` holds git submodules pinned to the commits that were built and tested: reactive-lib-omni v0.1.0 (`3ade0dc`), v4-core main (`bea7f6d`) and forge-std v1.17.0.
 
 ## What is real and what is simulated
 
