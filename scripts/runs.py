@@ -44,12 +44,17 @@ def head(chain):
 
 
 def block_ms(chain, n):
-    b = rpc(chain, "eth_getBlockByNumber", [hex(n), False])
+    for _ in range(20):  # a lagging node returns null for a block it has not seen yet
+        b = rpc(chain, "eth_getBlockByNumber", [hex(n), False])
+        if b: break
+        time.sleep(0.3)
     return int(b["timestampMs"], 16) if "timestampMs" in b else int(b["timestamp"], 16) * 1000
 
 
 def logs(chain, addr, frm, topics=None):
-    q = {"fromBlock": hex(frm), "address": addr}
+    # Load-balanced nodes lag each other; a range past a node's head gets HTTP 413 (Base) or -32602 (Unichain).
+    h = head(chain)
+    q = {"fromBlock": hex(min(frm, h)), "toBlock": hex(h), "address": addr}
     if topics: q["topics"] = topics
     return rpc(chain, "eth_getLogs", [q])
 
@@ -114,6 +119,17 @@ def run(kind, chain, zero_for_one, amount):
                 "lasna_request_tx": req["transactionHash"], "lasna_request_block": int(req["blockNumber"], 16)})
     if rel:
         row.update({"outcome": OUTCOME[words(rel["data"])[0]], "lasna_release_tx": rel["transactionHash"]})
+    for _ in range(5):  # a lagging node can miss a fresh leg; ask again until both legs (plus any unwind) show
+        legs = collect_legs(rid, start, o_ms)
+        if len(legs) >= 2: break
+        time.sleep(2)
+    row["legs"] = legs
+    print(f"{kind} #{rid} gap on {NAME[chain]} -> origin {row['origin']['chain']}: {row.get('outcome', 'NOT RELEASED')}; "
+          + ", ".join(f"{l['chain']} {l['result']} +{l['ms_after_origin']} ms" for l in legs))
+    return row
+
+
+def collect_legs(rid, start, o_ms):
     legs = []
     for c in (84532, 1301):
         for l in logs(c, EX[c], start[c], [None, "0x%064x" % rid]):
@@ -125,10 +141,7 @@ def run(kind, chain, zero_for_one, amount):
             else:
                 leg.update({"result": "skipped:" + SKIP.get(w[0], str(w[0]))})
             legs.append(leg)
-    row["legs"] = legs
-    print(f"{kind} #{rid} gap on {NAME[chain]} -> origin {row['origin']['chain']}: {row.get('outcome', 'NOT RELEASED')}; "
-          + ", ".join(f"{l['chain']} {l['result']} +{l['ms_after_origin']} ms" for l in legs))
-    return row
+    return legs
 
 
 def main(kind, n):
@@ -137,7 +150,11 @@ def main(kind, n):
     for i in range(n):
         chain = 84532 if i % 2 == 0 else 1301
         zero_for_one = (i // 2) % 2 == 0  # base sell, uni sell, base buy, uni buy: inventory stays balanced
-        row = run(kind, chain, zero_for_one, amount)
+        try:
+            row = run(kind, chain, zero_for_one, amount)
+        except Exception as e:  # one flaky RPC answer must not end a 45-run batch
+            row = {"kind": kind, "error": repr(e)[:300]}
+            print("run error:", row["error"])
         row["ts"] = int(time.time())
         rows.append(row)
         with open("results/runs.jsonl", "a") as f:

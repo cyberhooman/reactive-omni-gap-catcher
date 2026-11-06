@@ -1,0 +1,31 @@
+catch #8 gap on base -> origin base: both_filled; base filled +1800 ms, unichain filled +2400 ms
+Traceback (most recent call last):
+  File "D:\code\Hackaton\reactive-omni\scripts\runs.py", line 155, in <module>
+    main(sys.argv[1], int(sys.argv[2]))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\code\Hackaton\reactive-omni\scripts\runs.py", line 140, in main
+    row = run(kind, chain, zero_for_one, amount)
+  File "D:\code\Hackaton\reactive-omni\scripts\runs.py", line 119, in run
+    for l in logs(c, EX[c], start[c], [None, "0x%064x" % rid]):
+             ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\code\Hackaton\reactive-omni\scripts\runs.py", line 54, in logs
+    return rpc(chain, "eth_getLogs", [q])
+  File "D:\code\Hackaton\reactive-omni\scripts\runs.py", line 34, in rpc
+    r = json.load(urllib.request.urlopen(req, timeout=20))
+                  ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\urllib\request.py", line 187, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\urllib\request.py", line 493, in open
+    response = meth(req, response)
+  File "C:\Python314\Lib\urllib\request.py", line 602, in http_response
+    response = self.parent.error(
+        'http', request, response, code, msg, hdrs)
+  File "C:\Python314\Lib\urllib\request.py", line 531, in error
+    return self._call_chain(*args)
+           ~~~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Python314\Lib\urllib\request.py", line 464, in _call_chain
+    result = func(*args)
+  File "C:\Python314\Lib\urllib\request.py", line 611, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 413: Payload Too Large
