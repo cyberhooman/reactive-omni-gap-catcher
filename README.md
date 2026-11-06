@@ -91,7 +91,8 @@ The pools are the official Uniswap v4 deployments. PoolId `0xb930b476db0a7bc7234
 ## Reproduce
 
 ```bash
-git clone --recursive https://github.com/cyberhooman/reactive-omni-gap-catcher && cd reactive-omni-gap-catcher
+git clone https://github.com/cyberhooman/reactive-omni-gap-catcher && cd reactive-omni-gap-catcher
+git submodule update --init         # top level only; v4-core's own submodules are not needed
 forge build
 forge test                          # 12 tests: 8 GapCatcher unit tests (mock system contract), 4 Executor tests on a Base Sepolia fork
 bash scripts/deploy.sh              # fresh deployment -> deployments.json (needs DEPLOYER_PRIVATE_KEY with testnet ETH + lREACT)
